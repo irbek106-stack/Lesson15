@@ -13,28 +13,26 @@ type Book struct {
 	ReaderID *int
 }
 
-func (b *Book) IssueBook(reader *Reader) {
+func (b *Book) IssueBook(reader *Reader) error {
 	if b.IsIssued {
-		fmt.Printf("Книга '%s' уже кому-то выдана\n", b.Title)
-		return
+		return fmt.Errorf("книга '%s' уже выдана", b.Title)
 	}
 	if !reader.IsActive {
-		fmt.Printf("Читатель %s %s не активен и не может получить книгу.", reader.FirstName, reader.LastName)
-		return
+		return fmt.Errorf("читатель %s %s не активен", reader.FirstName, reader.LastName)
 	}
 	b.IsIssued = true
 	b.ReaderID = &reader.ID
 	fmt.Printf("Книга '%s' была выдана читателю %s %s\n", b.Title, reader.FirstName, reader.LastName)
+	return nil
 }
 
-func (b *Book) ReturnBook() {
+func (b *Book) ReturnBook() error{
 	if !b.IsIssued {
-		fmt.Printf("Книга '%s' и так в библиотеке", b.Title)
-		return
+		return fmt.Errorf("книга '%s' и так в библиотеке", b.Title)
 	}
 	b.IsIssued = false
 	b.ReaderID = nil
-	fmt.Printf("Книга '%s' возвращена в библиотеку\n", b.Title)
+	return nil
 }
 
 type Reader struct {
@@ -43,7 +41,6 @@ type Reader struct {
 	LastName  string
 	IsActive  bool
 }
-
 
 func (r Reader) String() string {
 	status := ""
@@ -114,8 +111,7 @@ func (lib *Library) FindBookByID(id int) (*Book, error) {
 			return book, nil
 		}
 	}
-
-	return nil, fmt.Errorf("книга с ID %d не найдена в библиотеке", id)
+	return nil, fmt.Errorf("книга с ID %d не найдена", id)
 }
 
 func (lib *Library) FindReaderByID(id int) (*Reader, error) {
@@ -139,15 +135,38 @@ func (lib *Library) IssueBookToReader(bookID, readerID int) error {
 		return err
 	}
 
+	err = book.IssueBook(reader)
+	if err != nil {
+		return err
+	}
 
 	book.IssueBook(reader)
 	return nil
 
 }
 
+
 func (lib *Library) ListAllBooks() {
-	fmt.Println("---Список всех книг---")
-	for i, book := range lib.Books {
-		fmt.Println(i+1, book)
+	fmt.Println("\n=== КАТАЛОГ ВСЕХ КНИГ В БИБЛИОТЕКЕ ===")
+	if len(lib.Books) == 0 {
+		fmt.Println("В библиотеке нет книг")
+		return
 	}
+	
+	for _, book := range lib.Books {
+		fmt.Println(book)
+	}
+	fmt.Println("=== КОНЕЦ КАТАЛОГА ===")
+}
+
+func (lib *Library) ReturnBook(bookID int) error {
+	book, err := lib.FindBookByID(bookID)
+	if err != nil {
+		return err
+	}
+	err = book.ReturnBook()
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -5,7 +5,7 @@ import "fmt"
 func main() {
 	fmt.Println("Запуск системы управления библиотекой")
 
-	myLibrary := &Library{} 
+	myLibrary := &Library{}
 
 	fmt.Println("Наполняем библиотеку")
 
@@ -18,7 +18,6 @@ func main() {
 	fmt.Println("\n---Библиотека готова к работе---")
 	fmt.Println("Количество читателей:", len(myLibrary.Readers))
 	fmt.Println("Количество книг:", len(myLibrary.Books))
-
 
 	fmt.Println("---Тестируем выдачу книг---")
 
@@ -36,8 +35,17 @@ func main() {
 	if err != nil {
 		fmt.Println("Ожидаемая ошибка:", err)
 	}
-	
-	
 
+	myLibrary.ListAllBooks()
+	fmt.Println(myLibrary.Books[0])
+
+	//Возврат книги №1
+	err = myLibrary.ReturnBook(book.ID)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println("Книгу вернули в библиотеку")
+	}
+	
 
 }
