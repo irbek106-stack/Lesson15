@@ -22,7 +22,6 @@ func (b *Book) IssueBook(reader *Reader) error {
 	}
 	b.IsIssued = true
 	b.ReaderID = &reader.ID
-	fmt.Printf("Книга '%s' была выдана читателю %s %s\n", b.Title, reader.FirstName, reader.LastName)
 	return nil
 }
 
@@ -54,6 +53,10 @@ func (r Reader) String() string {
 
 func (r *Reader) Deactivate() {
 	r.IsActive = false
+}
+
+func (r *Reader) Activate() {
+	r.IsActive = true
 }
 
 func (b Book) String() string {
@@ -142,7 +145,6 @@ func (lib *Library) IssueBookToReader(bookID, readerID int) error {
 
 	book.IssueBook(reader)
 	return nil
-
 }
 
 
@@ -168,5 +170,11 @@ func (lib *Library) ReturnBook(bookID int) error {
 	if err != nil {
 		return err
 	}
-	return nil
+	return err
 }
+
+
+func (lib *Library) GetAllBooks() []*Book {
+	return lib.Books
+}
+

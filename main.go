@@ -21,31 +21,25 @@ func main() {
 
 	fmt.Println("---Тестируем выдачу книг---")
 
+	fmt.Println("-----------------------------")
 	err := myLibrary.IssueBookToReader(1, 1)
 	if err != nil {
-		fmt.Println("Ошибка выдачи", err)
-	}
-
-	book, _ := myLibrary.FindBookByID(1)
-	if book != nil {
-		fmt.Println("Статус книги после выдачи:", book)
-	}
-
-	err = myLibrary.IssueBookToReader(99, 1)
-	if err != nil {
-		fmt.Println("Ожидаемая ошибка:", err)
-	}
-
-	myLibrary.ListAllBooks()
-	fmt.Println(myLibrary.Books[0])
-
-	//Возврат книги №1
-	err = myLibrary.ReturnBook(book.ID)
-	if err != nil {
-		fmt.Println(err)
+		fmt.Println("ошибка выдачи: ", err)
 	} else {
-		fmt.Println("Книгу вернули в библиотеку")
+		fmt.Println("Книга успешно выдана")
+	}
+
+	err = myLibrary.ReturnBook(1)
+	if err != nil {
+		fmt.Println("", err)
+	} else {
+		fmt.Println("Книга успешно выдана")
 	}
 	
-
+	err = myLibrary.ReturnBook(1)
+	if err != nil {
+		fmt.Println("", err)
+	} else {
+		fmt.Println("Книга успешно выдана")
+	}
 }
