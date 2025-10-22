@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 )
 
 type Book struct {
@@ -75,9 +77,14 @@ type Library struct {
 	lastReaderID int
 }
 
-func (lib *Library) AddReader(firstName, lastName string) *Reader {
-	lib.lastReaderID++
+func (lib *Library) AddReader(firstName, lastName string) (*Reader, error) {
+	cleanedFirstName := strings.TrimSpace(firstName)
+	cleanedLastName := strings.TrimSpace(lastName)
 
+	if cleanedFirstName == "" || cleanedLastName == "" {
+		return nil, errors.New("фамилия и имя не могут быть пустыми")
+	}
+	
 	newReader := &Reader{
 		ID:        lib.lastReaderID,
 		FirstName: firstName,
@@ -88,7 +95,7 @@ func (lib *Library) AddReader(firstName, lastName string) *Reader {
 	lib.Readers = append(lib.Readers, newReader)
 
 	fmt.Printf("Зарегистрирован новый читатель: %s %s \n", firstName, lastName)
-	return newReader
+	return newReader, nil
 }
 
 func (lib *Library) AddBook(title, author string, year int) *Book {
@@ -147,19 +154,6 @@ func (lib *Library) IssueBookToReader(bookID, readerID int) error {
 	return nil
 }
 
-
-func (lib *Library) ListAllBooks() {
-	fmt.Println("\n=== КАТАЛОГ ВСЕХ КНИГ В БИБЛИОТЕКЕ ===")
-	if len(lib.Books) == 0 {
-		fmt.Println("В библиотеке нет книг")
-		return
-	}
-	
-	for _, book := range lib.Books {
-		fmt.Println(book)
-	}
-	fmt.Println("=== КОНЕЦ КАТАЛОГА ===")
-}
 
 func (lib *Library) ReturnBook(bookID int) error {
 	book, err := lib.FindBookByID(bookID)

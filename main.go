@@ -42,4 +42,9 @@ func main() {
 	} else {
 		fmt.Println("Книга успешно выдана")
 	}
+
+	books := myLibrary.GetAllBooks()
+	for _, book := range books{
+		fmt.Println(book)	
+	}
 }
