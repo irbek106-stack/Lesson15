@@ -1,49 +1,32 @@
 package library
 
-import (
-	"errors"
-	"fmt"
-	"libary-app/domain"
+import(
+	"library-app/domain"
 	"strings"
+	"fmt"
+	"errors"
 )
 
 
-func New() *Library{
+type Library struct {
+	Books   []*domain.Book
+	Readers []*domain.Reader
 
-
-}   
-
-
-func (b *domain.Book) IssueBook(reader *domain.Reader) error {
-	if b.IsIssued {
-		return fmt.Errorf("книга '%s' уже выдана", b.Title)
-	}
-	if !reader.IsActive {
-		return fmt.Errorf("читатель %s %s не активен", reader.FirstName, reader.LastName)
-	}
-	b.IsIssued = true
-	b.ReaderID = &reader.ID
-	return nil
-}
-
-func (b *domain.Book) ReturnBook() error{
-	if !b.IsIssued {
-		return fmt.Errorf("книга '%s' и так в библиотеке", b.Title)
-	}
-	b.IsIssued = false
-	b.ReaderID = nil
-	return nil
+	lastBookID   int
+	lastReaderID int
 }
 
 
-func (lib *Library) AddReader(firstName, lastName string) (*domain.Reader, error) {
+func (lib *Library) AddReader(firstName, lastName string) (*domain.Reader,error) {
 	cleanedFirstName := strings.TrimSpace(firstName)
 	cleanedLastName := strings.TrimSpace(lastName)
 
-	if cleanedFirstName == "" || cleanedLastName == "" {
+	if cleanedFirstName == "" || cleanedLastName == ""{
 		return nil, errors.New("фамилия и имя не могут быть пустыми")
 	}
-	
+
+	lib.lastReaderID++
+
 	newReader := &domain.Reader{
 		ID:        lib.lastReaderID,
 		FirstName: firstName,
@@ -53,11 +36,17 @@ func (lib *Library) AddReader(firstName, lastName string) (*domain.Reader, error
 
 	lib.Readers = append(lib.Readers, newReader)
 
-	fmt.Printf("Зарегистрирован новый читатель: %s %s \n", firstName, lastName)
+	
 	return newReader, nil
 }
 
-func (lib *Library) AddBook(title, author string, year int) *domain.Book {
+
+func (lib *Library) AddBook(title, author string, year int) (*domain.Book, error) {
+    for _, b := range lib.Books {
+        if b.Title == title && b.Author == author {
+            return nil, fmt.Errorf("книга '%s' авторства '%s' уже существует", title, author)
+        }
+    }
 	lib.lastBookID++
 
 	newBook := &domain.Book{
@@ -70,8 +59,8 @@ func (lib *Library) AddBook(title, author string, year int) *domain.Book {
 
 	lib.Books = append(lib.Books, newBook)
 
-	fmt.Printf("Добавлена новая книга: %s\n", newBook)
-	return newBook
+
+	return newBook, nil
 }
 
 func (lib *Library) FindBookByID(id int) (*domain.Book, error) {
@@ -89,44 +78,59 @@ func (lib *Library) FindReaderByID(id int) (*domain.Reader, error) {
 			return reader, nil
 		}
 	}
-
 	return nil, fmt.Errorf("читатель с ID %d не найден", id)
 }
 
 func (lib *Library) IssueBookToReader(bookID, readerID int) error {
+
 	book, err := lib.FindBookByID(bookID)
 	if err != nil {
-		return err
+		return err 
+	}
+	
+	if book.IsIssued{
+		return fmt.Errorf("Книга '%s' уже выдана", book.Title)
 	}
 
-	reader, err := lib.FindReaderByID(readerID)
-	if err != nil {
-		return err
+	readerExists := false
+	for _, reader := range lib.Readers{		
+		if reader.ID == readerID{
+			readerExists = true
+			break
+		}
+	}
+	if !readerExists{
+		return fmt.Errorf("Читатель с ID %d не найден", readerID)
 	}
 
-	err = book.IssueBook(reader)
-	if err != nil {
-		return err
-	}
-
-	book.IssueBook(reader)
+	book.IsIssued = true
+	book.ReaderID = &readerID
 	return nil
 }
 
 
-func (lib *Library) ReturnBook(bookID int) error {
+func (lib *Library) ReturnBook(bookID int) error{
 	book, err := lib.FindBookByID(bookID)
-	if err != nil {
+	if err!= nil{
 		return err
 	}
 	err = book.ReturnBook()
-	if err != nil {
+	if err!= nil{
 		return err
 	}
-	return err
+	return book.ReturnBook()
 }
 
 
-func (lib *Library) GetAllBooks() []*domain.Book {
+func (lib *Library) GetAllBooks() []*domain.Book{
 	return lib.Books
+
+}
+
+
+func New() *Library {
+	return &Library{
+		Books:   []*domain.Book{},
+		Readers: []*domain.Reader{},
+	}
 }
