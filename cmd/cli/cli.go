@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"library-app/library"
+	"library-app/storage"
+	"os"
 	"strconv"
 )
 
@@ -28,6 +30,10 @@ func printMenu() {
 
 func handlerChoice(choice int, scanner *bufio.Scanner, library library.Library) {
 	switch choice {
+
+	case 0:
+		fmt.Println("")
+
 	case 1:
 		fmt.Println("Введите название книги: ")
 		scanner.Scan()
@@ -72,4 +78,25 @@ func handlerChoice(choice int, scanner *bufio.Scanner, library library.Library) 
 
 	}
 
+}
+
+func Run(lib library.Library) {
+	scanner := bufio.NewScanner(os.Stdin)
+	for {
+		printMenu()
+		scanner.Scan()
+		choice, err := strconv.Atoi(scanner.Text())
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		handlerChoice(choice, scanner, lib)
+		if choice == 0 {
+			storage.SaveBooksToCSV("books.csv", lib.Books)
+			if err != nil {
+				fmt.Println("произошла ошибка экспорта базы: ", err)
+			}
+			break
+		}
+	}
 }

@@ -1,8 +1,9 @@
 package main
 
 import (
-    "library-app/library" 
-    "fmt"
+	"fmt"
+	"library-app/cmd/cli"
+	"library-app/library"
 )
 
 func main() {
@@ -25,29 +26,32 @@ func main() {
     fmt.Println("Количество книг:", len(myLibrary.Books))
 
     fmt.Println("\n---Тестируем выдачу книг---")
+
+
+    cli.Run(*myLibrary)
     
-    err := myLibrary.IssueBookToReader(1, 1)
-    if err != nil {
-        fmt.Println("Ошибка выдачи:", err)
-    }
+    // err := myLibrary.IssueBookToReader(1, 1)
+    // if err != nil {
+    //     fmt.Println("Ошибка выдачи:", err)
+    // }
 
-    book, _ := myLibrary.FindBookByID(1)
-    if book != nil {
-        fmt.Println("Статус книги после выдачи:", book)
-    }
+    // book, _ := myLibrary.FindBookByID(1)
+    // if book != nil {
+    //     fmt.Println("Статус книги после выдачи:", book)
+    // }
 
-    err = myLibrary.IssueBookToReader(99, 1)
-    if err != nil {
-        fmt.Println("Ожидаемая ошибка:", err)
-    }
+    // err = myLibrary.IssueBookToReader(99, 1)
+    // if err != nil {
+    //     fmt.Println("Ожидаемая ошибка:", err)
+    // }
 
 
-	fmt.Println()
+	// fmt.Println()
 
-	books := myLibrary.GetAllBooks()
-	for _, book := range books{
-		fmt.Println(book)
-	}
+	// books := myLibrary.GetAllBooks()
+	// for _, book := range books{
+	// 	fmt.Println(book)
+	// }
 
 
 
