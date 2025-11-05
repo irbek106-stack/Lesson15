@@ -27,7 +27,6 @@ func main() {
 
     fmt.Println("\n---Тестируем выдачу книг---")
 
-
     cli.Run(*myLibrary)
     
     // err := myLibrary.IssueBookToReader(1, 1)

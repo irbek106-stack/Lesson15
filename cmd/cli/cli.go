@@ -25,15 +25,12 @@ func printMenu() {
 	fmt.Println("[9] Поиск читателя")
 	fmt.Println("[10] Импорт читателя")
 	fmt.Println("[11] Экспорт читателя")
+	fmt.Println("[0] Выход")
 
 }
 
 func handlerChoice(choice int, scanner *bufio.Scanner, library library.Library) {
 	switch choice {
-
-	case 0:
-		fmt.Println("")
-
 	case 1:
 		fmt.Println("Введите название книги: ")
 		scanner.Scan()
@@ -76,25 +73,56 @@ func handlerChoice(choice int, scanner *bufio.Scanner, library library.Library) 
 			fmt.Printf("Произошла ошибка при выдаче книги:%v", err)
 		}
 
+	case 3:
+		fmt.Println("Введите номер книги: ")
+		scanner.Scan()
+		idBook, err := strconv.Atoi(scanner.Text())
+		if err != nil {
+			fmt.Println("Номер должен состоять из цифр!")
+			return
+		}
+		err = library.ReturnBook(idBook)
+		if err != nil{
+			fmt.Println("Ошибка возврата книги ", err)
+			return
+		}
+		fmt.Println("Книга возвращена")
+
+	case 4:
+		fmt.Println("Введите номер книги: ")
+		scanner.Scan()
+		idBook, err := strconv.Atoi(scanner.Text())
+		if err != nil {
+			fmt.Println("Номер должен состоять из цифр!")
+			return
+		}
+		book, err := library.FindBookByID(idBook)
+		if err != nil{
+			fmt.Println("Ошибка при поиске книги", err)
+			return
+		}
+		fmt.Println(book)
+	case 0:
+		fmt.Println("Bye")
 	}
 
 }
 
-func Run(lib library.Library) {
+func Run(lib library.Library){
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		printMenu()
 		scanner.Scan()
 		choice, err := strconv.Atoi(scanner.Text())
-		if err != nil {
+		if err != nil{
 			fmt.Println(err)
 			continue
 		}
-		handlerChoice(choice, scanner, lib)
-		if choice == 0 {
+		handlerChoice(choice,scanner,lib)
+		if choice == 0{
 			storage.SaveBooksToCSV("books.csv", lib.Books)
-			if err != nil {
-				fmt.Println("произошла ошибка экспорта базы: ", err)
+			if err != nil{
+				fmt.Println("Произошла ошибка экспорта: ", err)
 			}
 			break
 		}
