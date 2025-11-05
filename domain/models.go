@@ -10,10 +10,41 @@ type Book struct {
 	Author   string
 	Year     int
 	IsIssued bool
-	ReaderID *int
+	ReaderID *int //ID читателя, который взял книгу
 }
 
+// IssueBook выдает книгу читателю.
+func (b *Book) IssueBook(reader *Reader) error {
+	if b.IsIssued {
+		return fmt.Errorf("книга '%s' уже выдана", b.Title)
+	}
+	if !reader.IsActive {
+		return fmt.Errorf("читатель %s %s не активен и не может получить книгу", reader.FirstName, reader.LastName)
+	}
+	b.IsIssued = true
+	b.ReaderID = &reader.ID
+	return nil //Книга успешно выдана
+}
 
+// ReturnBook возвращает книгу в библиотеку
+func (b *Book) ReturnBook() error {
+	if !b.IsIssued {
+		return fmt.Errorf("книга '%s' и так в библиотеке", b.Title)
+	}
+	b.IsIssued = false
+	b.ReaderID = nil
+	return nil
+}
+
+func (b Book) String() string {
+	status := "в библиотеке"
+	if b.IsIssued && b.ReaderID != nil {
+		status = fmt.Sprintf("на руках у читателя с ID %d", *b.ReaderID)
+	}
+	return fmt.Sprintf("%s (%s, %d), статус: %s", b.Title, b.Author, b.Year, status)
+}
+
+/*-------------------------------------------------------------------------------------------*/
 
 type Reader struct {
 	ID        int
@@ -39,21 +70,3 @@ func (r *Reader) Deactivate() {
 func (r *Reader) Activate() {
 	r.IsActive = true
 }
-
-func (b Book) String() string {
-	status := "в библиотеке"
-	if b.IsIssued && b.ReaderID != nil {
-		status = fmt.Sprintf("на руках у читателя с ID %d", *b.ReaderID)
-	}
-	return fmt.Sprintf("%s (%s, %d), статус %s", b.Title, b.Author, b.Year, status)
-}
-
-type Library struct {
-	Books   []*Book
-	Readers []*Reader
-
-	lastBookID   int
-	lastReaderID int
-}
-
-

@@ -1,15 +1,19 @@
 package main
 
 import (
-    "library-app/library"
+    "library-app/library" 
     "fmt"
 )
 
 func main() {
     myLibrary := library.New()
+
+    
+
     myLibrary.AddBook("Война и мир","Лев Толстой",1763)
 	myLibrary.AddBook("Преступление и наказание","Ф.М. Достоевский",1343)
 
+	// Добавляем читателей
 	myLibrary.AddReader("Иван", "Иванов")
 	myLibrary.AddReader("Валерий","Кузьмин")
     myLibrary.IssueBookToReader(1,1)
@@ -44,5 +48,19 @@ func main() {
 	for _, book := range books{
 		fmt.Println(book)
 	}
+
+
+
+    // fmt.Println("Запуск системы управления библиотекой...")
+
+    // myLibrary := &Library{}
+
+    // fmt.Println("\n--- Наполняем библиотеку ---")
+
+    // myLibrary.AddReader("Агунда", "Кокойты")
+    // myLibrary.AddReader("Сергей", "Меняйло")
+
+    // myLibrary.AddBook("1984", "Джордж Оруэлл", 1949)
+    // myLibrary.AddBook("Мастер и Маргарита", "Михаил Булгаков", 1967)
 
 }
