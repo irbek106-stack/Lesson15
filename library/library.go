@@ -137,7 +137,10 @@ func (lib *Library) ReturnBook(bookID int) error{
 
 func (lib *Library) GetAllBooks() []*domain.Book{
 	return lib.Books
+}
 
+func (lib *Library) GetAllReaders() []*domain.Reader{
+	return lib.Readers
 }
 
 
