@@ -41,7 +41,7 @@ func (b Book) String() string {
 	if b.IsIssued && b.ReaderID != nil {
 		status = fmt.Sprintf("на руках у читателя с ID %d", *b.ReaderID)
 	}
-	return fmt.Sprintf("%s (%s, %d,),ID: %d, статус: %s", b.Title, b.Author, b.Year, b.ID, status)
+	return fmt.Sprintf("%s (%s, %d), статус: %s", b.Title, b.Author, b.Year, status)
 }
 
 /*-------------------------------------------------------------------------------------------*/

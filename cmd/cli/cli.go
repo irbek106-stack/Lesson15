@@ -3,234 +3,285 @@ package cli
 import (
 	"bufio"
 	"fmt"
-	"library-app/library"
-	"library-app/storage"
 	"os"
 	"strconv"
+	"strings"
+
+	"github.com/BatrazG/simple-library/library"
+	"github.com/BatrazG/simple-library/storage"
 )
 
-func printMenu() {
+// Run запускает главный цикл консольного приложения.
+// Он принимает сервис библиотеки как зависимость.
+func Run(lib *library.Library, dbPath string) {
+	scanner := bufio.NewScanner(os.Stdin)
 
-	fmt.Println("--SIMPLE-LIBRARY--")
-	fmt.Println("----------------------------------------")
-	fmt.Println("-MENU-")
-	fmt.Println("[0] Выход")
-	fmt.Println("[1] Добавление книги")
-	fmt.Println("[2] Выдача книги")
-	fmt.Println("[3] Возврат книги")
-	fmt.Println("[4] Поиск книги")
-	fmt.Println("[5] Импорт книги")
-	fmt.Println("[6] Экспорт книги")
-	fmt.Println("[7] Вывод всех книг")
-	fmt.Println("[8] Добавление читателя")
-	fmt.Println("[9] Поиск читателя")
-	fmt.Println("[10] Импорт читателя")
-	fmt.Println("[11] Экспорт читателя")
-	fmt.Println("[12] Вывод всех читателей")
+	for {
+		printMenu()
 
+		scanner.Scan()
+		inputText := scanner.Text()
+
+		choice, err := strconv.Atoi(strings.TrimSpace(inputText))
+		if err != nil {
+			fmt.Println("Ошибка: Пожалуйста, введите число.")
+			continue
+		}
+
+		handleChoice(choice, lib, scanner) // Передаем сервис и сканер в обработчик
+
+		if choice == 0 {
+			fmt.Println("Сохранение данных и выход.")
+			if err := storage.SaveLibraryToJSON("books.json", lib); err != nil {
+				fmt.Println("Произошла ошибка сохранения списка книг:", err)
+			}
+			return // Выходим из цикла, если выбрали выход
+		}
+	}
 }
 
-func handlerChoice(choice int, scanner *bufio.Scanner, library *library.Library) {
+// printMenu отвечает за вывод в консоль пользовательского меню
+func printMenu() {
+	//Вывод меню
+	fmt.Println("")
+	fmt.Println("----------------")
+	fmt.Println("Главное меню:")
+	fmt.Println("1. Поиск книги по названию")
+	fmt.Println("2. Поиск книги по номеру")
+	fmt.Println("3. Выдать книгу")
+	fmt.Println("4. Вернуть книгу")
+	fmt.Println("5. Поиск читателя по номеру")
+	fmt.Println("6. Показать список книг")
+	fmt.Println("7. Экспорт списка книг")
+	fmt.Println("8. Импорт списка книг")
+	fmt.Println("9. Добавление новой книги")
+	fmt.Println("10 Добавление нового читателя")
+	fmt.Println("11 Экспорт списка читателей")
+	fmt.Println("12 Импорт списка читателей")
+	fmt.Println("0. Выход")
+	fmt.Println("Выберите пункт меню:")
+}
+
+// handlerChoice обрабатывает выбор пользователем пункта меню
+func handleChoice(choice int, lib *library.Library, scanner *bufio.Scanner) {
 	switch choice {
-	//выход
-	case 0:
-		fmt.Println("Bye")
-		//добавление книг
-	case 1:
-		fmt.Println("Введите название книги: ")
+	case 1: //поиск книги по названию
+		fmt.Println("---Введите название книги:---")
 		scanner.Scan()
 		title := scanner.Text()
-
-		fmt.Println("Введите автора книги: ")
-		scanner.Scan()
-		author := scanner.Text()
-
-		fmt.Println("Введите год книги: ")
-		scanner.Scan()
-		year, err := strconv.Atoi(scanner.Text())
+		foundBooks, err := lib.FindBookByTitle(title)
 		if err != nil {
-			fmt.Println("Год должен состоять из цифр")
+			fmt.Println("Произошла ошибка поиска: ", err)
 			return
 		}
 
-		if _, err := library.AddBook(title, author, year); err != nil {
-			fmt.Printf("Произошла ошибка при добавление книги:%v", err)
-			return
+		if len(foundBooks) == 0 {
+			fmt.Printf("Совпадений с названием %s не найдено\n", title)
+		} else {
+			for _, book := range foundBooks {
+				fmt.Println(book)
+			}
 		}
-
-		fmt.Printf("Книга %s успешно добавлена\n", title)
-
-		// выдача книг читателю
-	case 2:
-		fmt.Println("Введите номер книги: ")
+	case 2: //Поиск книги по ID
+		fmt.Println("---Введите номер книги:---")
 		scanner.Scan()
-		idBook, err := strconv.Atoi(scanner.Text())
+		bookID, err := strconv.Atoi(scanner.Text())
 		if err != nil {
-			fmt.Println("Номер должен состоять из цифр!")
+			fmt.Println("Номер книги должен быть числом")
 			return
 		}
-
-		fmt.Println("Введите номер Читателя: ")
+		foundBook, err := lib.FindBookByID(bookID)
+		if err != nil {
+			fmt.Println("Произошла ошибка поиска: ", err)
+		} else {
+			fmt.Printf("Книга с номером %d %s\n:", bookID, foundBook)
+		}
+	case 3: //Выдача книги читателю
+		fmt.Println("---Введите ID книги:---")
 		scanner.Scan()
-		idUser, err := strconv.Atoi(scanner.Text())
+		bookID, err := strconv.Atoi(scanner.Text())
 		if err != nil {
-			fmt.Println("Номер должен состоять из цифр!")
+			fmt.Println("Номер книги должен быть числом")
 			return
 		}
-		if err := library.IssueBookToReader(idBook, idUser); err != nil {
-			fmt.Printf("Произошла ошибка при выдаче книги:%v", err)
-			return
-		}
-		fmt.Printf("Книга %d выдана пользователю %d\n", idBook, idUser)
-		//возврат книги
-	case 3:
-		fmt.Println("Введите номер книги: ")
+		fmt.Println("---Введите ID читателя---")
 		scanner.Scan()
-		idBook, err := strconv.Atoi(scanner.Text())
+		readerID, err := strconv.Atoi(scanner.Text())
 		if err != nil {
-			fmt.Println("Номер должен состоять из цифр!")
+			fmt.Println("Номер читателя должен быть числом")
 			return
 		}
-		err = library.ReturnBook(idBook)
+		//Выдыча книги читателю
+		err = lib.IssueBookToReader(bookID, readerID)
 		if err != nil {
-			fmt.Println("Ошибка возврата книги:", err)
+			fmt.Println("Произошла ошибка выдачи книги:", err)
 			return
 		}
-		fmt.Printf("Книга %d возвращена\n", idBook)
-	// поиск книги
-	case 4:
-		fmt.Println("Введите номер книги: ")
+		fmt.Printf("Книга с ID %d успешно выдана читателю с ID %d", bookID, readerID)
+	case 4: //Возврат книги
+		fmt.Println("---Введите ID книги:---")
 		scanner.Scan()
-		idBook, err := strconv.Atoi(scanner.Text())
+		bookID, err := strconv.Atoi(scanner.Text())
 		if err != nil {
-			fmt.Println("Номер должен состоять из цифр!")
+			fmt.Println("Номер книги должен быть числом")
 			return
 		}
-		book, err := library.FindBookByID(idBook)
+		err = lib.ReturnBook(bookID)
 		if err != nil {
-			fmt.Println("Ошибка при поиске ", err)
+			fmt.Println("Произошла при возврате книги:", err)
 			return
 		}
-		fmt.Println(book)
-	//Импорт списка книг
-	case 5:
-		fmt.Println("Введите название файла: ")
+		fmt.Printf("Книга с ID %d успешно возвращена в библиотеку", bookID)
+	case 5: //Поиск читателя по ID
+		fmt.Println("---Посик читателя по номеру---")
+		fmt.Println("Введите номер читателя")
 		scanner.Scan()
-		filename := scanner.Text()
-		books, err := storage.LoadBooksFromCSV(filename)
+		readerID, err := strconv.Atoi(scanner.Text())
 		if err != nil {
-			fmt.Println("Ошибка при импорте списка", err)
+			fmt.Println("Номер читателя должен быть числом")
 			return
 		}
-		library.Books = books
-		fmt.Println("Список книг успешно импортирован!")
-
-	//экспорт книг
-	case 6:
-		fmt.Println("Введите название файла: ")
-		scanner.Scan()
-		filename := scanner.Text()
-		err := storage.SaveBooksToCSV(filename, library.Books)
+		reader, err := lib.FindReaderByID(readerID)
 		if err != nil {
-			fmt.Println("Ошибка экспорта: ", err)
-			return
-		}
-		fmt.Println("Книги успешно экспортированы")
-
-		//Вывод всех книг
-	case 7:
-		books := library.GetAllBooks()
-		fmt.Println("Список книг: ")
-		for _, book := range books {
-			fmt.Println(book)
-		}
-
-		//Добавление читателя
-	case 8:
-		fmt.Println("Введите имя читателя")
-		scanner.Scan()
-		firstName := scanner.Text()
-		fmt.Println("Введите фамилию читателя")
-		scanner.Scan()
-		lastName := scanner.Text()
-		_, err := library.AddReader(firstName, lastName)
-		if err != nil {
-			fmt.Println("Произошла ошибка при создании читателя:", err)
-			return
-		}
-		fmt.Println("Создан читатель")
-
-		//Поиск читателя
-	case 9:
-		fmt.Println("Введите номер Читателя: ")
-		scanner.Scan()
-		idUser, err := strconv.Atoi(scanner.Text())
-		if err != nil {
-			fmt.Println("Номер должен состоять из цифр!")
-			return
-		}
-		reader, err := library.FindReaderByID(idUser)
-		if err != nil {
-			fmt.Println("Произошла ошибка при поиске читателя:", err)
+			fmt.Println("Произошла ошибка поиска читателя:", err)
 			return
 		}
 		fmt.Println(reader)
-
-		//Импорт читателей
-	case 10:
-		fmt.Println("Введите название файла: ")
-		scanner.Scan()
-		filename := scanner.Text()
-		readers, err := storage.LoadReadersFromCSV(filename)
-		if err != nil {
-			fmt.Println("Ошибка при импорте списка", err)
+	case 6: //Вывод на экран списка всех книг
+		fmt.Println("\n---Список всех книг библиотеки---")
+		books := lib.GetAllBooks()
+		if len(books) == 0 {
+			fmt.Println("Библиотечный фонд пуст")
 			return
 		}
-		library.Readers = readers
-		fmt.Println("Список читателей успешно импортирован!")
-
-	//экспорт читателей
-	case 11:
-		fmt.Println("Введите название файла: ")
+		for i, book := range books {
+			fmt.Println(i+1, "\t", book)
+		}
+	case 7: //Экспорт списка книг в csv
+		fmt.Println("Введите название файла для экспорта в формате <название.csv>:")
 		scanner.Scan()
 		filename := scanner.Text()
-		err := storage.SaveReadersToCSV(filename, library.Readers)
-		if err != nil {
-			fmt.Println("Ошибка экспорта: ", err)
+		if err := storage.SaveBooksToCSV(filename, lib.Books); err != nil {
+			fmt.Println("Произошла ошибка экспорта:", err)
 			return
 		}
-		fmt.Println("Читатели успешно экспортированы")
-
-		//Вывод всех читателей
-	case 12:
-		readers := library.GetAllReaders()
-		fmt.Println("Список : ")
-		for _, reader := range readers {
-			fmt.Println(reader)
+		fmt.Printf("Список книг успешно выгружен в файл %s", filename)
+	case 8: //Импорт книг из csv
+		fmt.Println("Введите название файла для импорта в формате <название.csv>:")
+		scanner.Scan()
+		filename := scanner.Text()
+		loadedBooks, err := storage.LoadBooksFromCSV(filename)
+		if err != nil {
+			fmt.Println("Ошибка импорта:", err)
+			return
 		}
-	}
+		lib.Books = loadedBooks
+		fmt.Printf("Список книгу успешно импортирован из файла %s\n", filename)
+	case 9: //Новая книга
+		fmt.Println("Введите название книги")
+		scanner.Scan()
+		title := scanner.Text()
+		fmt.Println("Введите автора")
+		scanner.Scan()
+		author := scanner.Text
+		fmt.Println("Введите год издания")
+		scanner.Scan()
+		year, err := strconv.Atoi(scanner.Text())
+		if err != nil {
+			fmt.Println("Год должен состояь из цифр.")
+			return
+		}
+		lib.AddBook(title, author(), year)
+	case 10: //Новый читатель
+		fmt.Println("Введите имя")
+		scanner.Scan()
+		firstName := scanner.Text()
+		fmt.Println("Введите фамилию")
+		scanner.Scan()
+		lastName := scanner.Text()
 
+		if _, err := lib.AddReader(firstName, lastName); err != nil {
+			fmt.Printf("Ошибка регистрации: %v", err)
+			return
+		}
+	case 11: //Экспорт списка читателей
+		fmt.Println("Введите название файла для экспорта в формате <название>.csv")
+		scanner.Scan()
+		filename := scanner.Text()
+		if err := storage.SaveReaderToCSV(filename, lib.Readers); err != nil {
+			fmt.Printf("Произошла ошибка экспорта: %v", err)
+			return
+		}
+		fmt.Printf("Список читателей успешно выгружен в файл %s", filename)
+	case 12: //Экспорт списка читателей
+		fmt.Println("Введите название файла для экспорта читателей в формате <название>.csv")
+		scanner.Scan()
+		filename := scanner.Text()
+		loadedReaders, err := storage.LoadReadersFromCSV(filename)
+		if err != nil {
+			fmt.Println("Ошибка импорта: ", err)
+			return
+		}
+		lib.Readers = loadedReaders
+		fmt.Printf("Список читателей успешно импортирован из файла %s\n", filename)
+	case 0:
+		fmt.Println("Всего доброго!")
+	} //switch
 }
 
-func Run(lib *library.Library) {
-
+/*
+//Создаем меню консольного приложения
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
-		printMenu()
+		fmt.Println("Добро пожаловать в")
+		fmt.Println("\033[1m" + "Simple library" + "\033[0m") //С помощью управляющих символов делаем строку жирной
+		fmt.Println()
+
+
+
+		//Считываем ввод пользователя
 		scanner.Scan()
-		choice, err := strconv.Atoi(scanner.Text())
+		inputText := scanner.Text()
+
+		//Преобразуем строку в число
+		choice, err := strconv.Atoi(inputText)
+
+		//Проверяем на ошибку(если ввели не число)
 		if err != nil {
-			fmt.Println("Нужно ввести число")
+			fmt.Println("Ошибка: пожалуйста, введите число от 1 до 8")
 			continue
 		}
-		handlerChoice(choice, scanner, lib)
-		if choice == 0 {
-			err = storage.SaveBooksToCSV("books.csv", lib.Books)
+
+		//Выбираем действие
+		switch choice {
+		case 1: //поиск книги по названию
+			fmt.Println("Введите название книги:")
+			scanner.Scan()
+			title := scanner.Text()
+			foundBooks, err := myLibrary.FindBookByTitle(title)
 			if err != nil {
-				fmt.Println("Произошла ошибка экспорта базы:", err)
-				return
+				fmt.Println("Произошла ошибка: ", err)
+			} else if len(foundBooks) == 0 {
+				fmt.Printf("Совпадений с названием %s не найдено\n", title)
+			} else {
+				for _, book := range foundBooks {
+					fmt.Println(book)
+				}
 			}
-			break
+		case 2:
+			fmt.Println("Введите номер книги:")
+			scanner.Scan()
+			bookID, err := strconv.Atoi(scanner.Text())
+			if err != nil {
+				fmt.Println("Номер книги должен быть числом")
+				continue
+			}
+			foundBook, err := myLibrary.FindBookByID(bookID)
+			if err != nil {
+				fmt.Println("Произошла ошибка: ", err)
+			} else {
+				fmt.Printf("Книга с номером %d %s\n:", bookID, foundBook)
+			}
 		}
 	}
-}
+*/

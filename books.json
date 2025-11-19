@@ -1,0 +1,34 @@
+{
+  "books": [
+    {
+      "ID": 1,
+      "Title": "1984",
+      "Author": "1949",
+      "Year": 1949,
+      "IsIssued": false,
+      "ReaderID": null
+    },
+    {
+      "ID": 2,
+      "Title": "9",
+      "Author": "1967",
+      "Year": 1967,
+      "IsIssued": false,
+      "ReaderID": null
+    }
+  ],
+  "readers": [
+    {
+      "ID": 1,
+      "FirstName": "Агунда",
+      "LastName": "Кокойти",
+      "IsActive": true
+    },
+    {
+      "ID": 2,
+      "FirstName": "Сергей",
+      "LastName": "Меняйло",
+      "IsActive": true
+    }
+  ]
+}

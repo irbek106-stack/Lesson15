@@ -1,3 +1,3 @@
-module library-app
+module github.com/BatrazG/simple-library
 
-go 1.25.0
+go 1.24.5

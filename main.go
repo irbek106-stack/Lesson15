@@ -2,72 +2,41 @@ package main
 
 import (
 	"fmt"
-	"library-app/cmd/cli"
-	"library-app/library"
-	"library-app/storage"
+	"log"
+	"os"
+
+	"github.com/BatrazG/simple-library/cmd/cli"
+	"github.com/BatrazG/simple-library/library"
+	"github.com/BatrazG/simple-library/storage"
 )
 
 func main() {
-	myLibrary := library.New()
-	var err error
-	myLibrary.Books, err = storage.LoadBooksFromCSV("books.csv")
+
+	/*myLibrary := library.New()
+
+	myLibrary.Books, _ = storage.LoadBooksFromCSV("books.csv")
+	myLibrary.Readers, _ = storage.LoadReadersFromCSV("readers.csv")*/
+
+	//Выносим имя файла в константу
+	const dbFile = "books.json"
+
+	//Пытаемся загрузить библиотеку из файла
+	myLibrary, err := storage.LoadLibraryFromJSON(dbFile)
 	if err != nil {
-		fmt.Println("Поизошла ошибка базы:", err)
+		//Если файл не найден - это не ошибка
+		//Создаем новую пустую библиотеку
+		if os.IsNotExist(err) {
+			fmt.Println("Файл данных не найден, создана новая библиотека")
+			myLibrary = library.New()
+		} else {
+			//Если произошла другая ошибка, например JSON файл не корректен
+			//завершаем работу
+			log.Fatalf("Ошибка при загрузке библиотеки: %v", err)
+		}
+	} else {
+		fmt.Println("Библиотека успешно загружена из файла")
 	}
 
-	myLibrary.Readers, err = storage.LoadReadersFromCSV("readers.csv")
-	if err != nil {
-		fmt.Println("Поизошла ошибка базы:", err)
-	}
-
-	cli.Run(myLibrary)
-
-	// myLibrary.AddBook("Война и мир", "Лев Толстой", 1763)
-	// myLibrary.AddBook("Преступление и наказание", "Ф.М. Достоевский", 1343)
-
-	// // Добавляем читателей
-	// myLibrary.AddReader("Иван", "Иванов")
-	// myLibrary.AddReader("Валерий", "Кузьмин")
-	// myLibrary.IssueBookToReader(1, 1)
-
-	// fmt.Println("\n--- Библиотека готова к работе ---")
-	// fmt.Println("Количество читателей:", len(myLibrary.Readers))
-	// fmt.Println("Количество книг:", len(myLibrary.Books))
-
-	// fmt.Println("\n---Тестируем выдачу книг---")
-
-	// err := myLibrary.IssueBookToReader(1, 1)
-	// if err != nil {
-	//     fmt.Println("Ошибка выдачи:", err)
-	// }
-
-	// book, _ := myLibrary.FindBookByID(1)
-	// if book != nil {
-	//     fmt.Println("Статус книги после выдачи:", book)
-	// }
-
-	// err = myLibrary.IssueBookToReader(99, 1)
-	// if err != nil {
-	//     fmt.Println("Ожидаемая ошибка:", err)
-	// }
-
-	// fmt.Println()
-
-	// books := myLibrary.GetAllBooks()
-	// for _, book := range books{
-	// 	fmt.Println(book)
-	// }
-
-	// fmt.Println("Запуск системы управления библиотекой...")
-
-	// myLibrary := &Library{}
-
-	// fmt.Println("\n--- Наполняем библиотеку ---")
-
-	// myLibrary.AddReader("Агунда", "Кокойты")
-	// myLibrary.AddReader("Сергей", "Меняйло")
-
-	// myLibrary.AddBook("1984", "Джордж Оруэлл", 1949)
-	// myLibrary.AddBook("Мастер и Маргарита", "Михаил Булгаков", 1967)
+	cli.Run(myLibrary, dbFile)
 
 }
